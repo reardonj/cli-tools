@@ -57,7 +57,8 @@ enum Commands:
     case Commands.Transform(Args.FromLongs(msb, lsb)) => UUID(msb.signed, lsb.signed).show
 
 object Commands:
-  private val detailsCommand = (Opts.flag("details", "show details about a UUID") *> Args.uuidValueArg)
+  private val detailsCommand = Opts
+    .subcommand("details", "show details about a UUID")(Args.uuidValueArg)
     .map {
       case Args.FromUUID(uuid)      => uuid
       case Args.FromLongs(msb, lsb) => UUID(msb.signed, lsb.signed)

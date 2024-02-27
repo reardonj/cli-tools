@@ -8,7 +8,7 @@ This tool is also an excuse to try out writing an application with [Scala CLI](h
 # Usage
 
 ```sh
-scala-cli uuid-format.scala -- [--details] <uuid> | <most significant bits> <least significant bits>
+scala-cli uuid-format.scala -- [details] <uuid> | <most significant bits> <least significant bits>
 ```
 
 eg. 
