@@ -22,7 +22,7 @@
   SOFTWARE.
  */
 
-//> using scala 3.3
+//> using scala 3.4
 //> using dep org.typelevel::cats-core::2.10.0
 //> using dep com.monovore::decline::2.4.1
 
