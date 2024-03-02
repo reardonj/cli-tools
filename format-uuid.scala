@@ -35,9 +35,9 @@ import java.util.UUID
 import com.monovore.decline._
 import scala.util.*
 
-object UUIDFormat
+object FormatUUID
     extends CommandApp(
-      "uuid-format",
+      "format-uuid",
       "Transform between canonical UUID representation & unsigned long representation",
       Commands.opts.map(println)
     )
