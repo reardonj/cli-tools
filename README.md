@@ -1,11 +1,13 @@
-# uuid-format
+# CLI Tools
+
+This repository is a collection of of little Scala-CLI tools to automate various tasks. It is also an excuse to try out writing an application with [Scala CLI](https://scala-cli.virtuslab.org/) and [decline](https://ben.kirw.in/decline/).
+
+## uuid-format
 
 A little tool to transform between hexadecimal representations of a UUID & representation as a pair of unsigned longs.
 This representation is convenient to serialize [Java UUIDs](https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html) with, but otherwise inconvenient to work with.
 
-This tool is also an excuse to try out writing an application with [Scala CLI](https://scala-cli.virtuslab.org/) and [decline](https://ben.kirw.in/decline/).
-
-# Usage
+### Usage
 
 ```sh
 scala-cli uuid-format.scala -- [details] <uuid> | <most significant bits> <least significant bits>
@@ -24,7 +26,7 @@ $ scala-cli uuid-format.scala -- 7790069126492721646 13239829756867503085
 ```
 
 The tool will accept UUIDs in the standard 8-4-4-4-12 format, or as a series of hexadecimal digits with an optional `0x` prefix.
-# Building
+### Building
 
 Thanks to the magic of Scala CLI, you can create a Scala Native executable from this script without even cloning this repository using the following command:
 
