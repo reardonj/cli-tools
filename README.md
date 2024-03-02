@@ -31,5 +31,5 @@ The tool will accept UUIDs in the standard 8-4-4-4-12 format, or as a series of 
 Thanks to the magic of Scala CLI, you can create a Scala Native executable from this script without even cloning this repository using the following command:
 
 ```sh
-scala-cli --power package https://github.com/reardonj/cli-tools/raw/main/format-uuid/format-uuid.scala -o format-uuid -f --native --native-mode release-fast --native-gc none
+scala-cli --power package https://github.com/reardonj/cli-tools/raw/main/format-uuid/format-uuid.scala -o out/format-uuid -f --native --native-mode release-fast --native-gc none
 ```
