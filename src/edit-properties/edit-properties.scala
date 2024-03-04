@@ -22,7 +22,7 @@
   SOFTWARE.
  */
 
-//> using scala 3.3
+//> using scala 3
 //> using dep org.typelevel::cats-core::2.10.0
 //> using dep com.monovore::decline::2.4.1
 
@@ -51,8 +51,10 @@ object Commands:
   final class SaveException(file: String, cause: Throwable)
       extends Exception(s"Error saving file '$file': ${cause.getMessage()}", cause)
 
-  def all = Opts
-    .subcommand("copy-keys", "copy any keys missing in the destination files from the source file.")(copyKeys)
+  def all = Seq(
+    Opts.subcommand("copy-keys", "copy any keys missing in the destination files.")(copyKeys),
+    Opts.subcommand("rename-key", "rename key")(renameKey)
+  ).reduce(_ orElse _)
     .map(
       _.fold(
         throwable =>
@@ -72,14 +74,33 @@ object Commands:
     (source, destinations).flatMapN { case ((_, source), destinations) =>
       val sourceKeys = Set.from(source.stringPropertyNames().asScala)
 
-      destinations.foreach { case (_, destination) =>
-        val missing = sourceKeys -- Set.from(destination.stringPropertyNames().asScala)
-        missing.foreach { missing => destination.setProperty(missing, "<COPY>" + source.getProperty(missing)) }
-      }
+      destinations
+        .flatMap { case (file, destination) =>
+          val missing = sourceKeys -- Set.from(destination.stringPropertyNames().asScala)
+          missing.foreach { missing => destination.setProperty(missing, "<COPY>" + source.getProperty(missing)) }
 
-      destinations.traverse_(saveProperties)
+          Option.when(missing.nonEmpty)((file, destination))
+        }
+        .traverse_(saveProperties)
     }
   }
+
+  val renameKey =
+    (Opts.option[String]("from", "current key name", "f"), Opts.option[String]("to", "new key name", "t"), destinations)
+      .mapN { (from, to, destinations) =>
+        destinations.flatMap {
+          _.flatMap { case (file, destination) =>
+              val matchingKeys = Set.from(destination.stringPropertyNames().asScala).filter(_.startsWith(from))
+              matchingKeys.foreach { originalKey =>
+                destination.setProperty(originalKey.replace(from, to), destination.getProperty(originalKey))
+                destination.remove(originalKey)
+              }
+
+              Option.when(matchingKeys.nonEmpty)((file, destination))
+            }
+            .traverse_(saveProperties)
+        }
+      }
 
   private def loadProperties(file: String): Try[(String, ju.Properties)] = Using(new FileInputStream(file)) { input =>
     val props = ju.Properties()
