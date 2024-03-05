@@ -41,6 +41,7 @@ import java.{util => ju}
 import java.nio.file.Files
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import scala.annotation.tailrec
 
 object EditProperties extends CommandApp("edit-properties", "Update Java properties files", Commands.all)
 
@@ -52,7 +53,8 @@ object Commands:
       extends Exception(s"Error saving file '$file': ${cause.getMessage()}", cause)
 
   def all = Seq(
-    Opts.subcommand("copy-keys", "copy any keys missing in the destination files.")(copyKeys),
+    Opts.subcommand("get-keys", "list all keys in the given files and write to standard out.")(getKeys),
+    Opts.subcommand("add-keys", "add all keys in the given files from standard in.")(addKeys),
     Opts.subcommand("rename-key", "rename key")(renameKey)
   ).reduce(_ orElse _)
     .map(
@@ -65,19 +67,28 @@ object Commands:
       )
     )
 
-  val source = Opts.option[String]("source", "source file", "s").map(loadProperties)
+  val destinations = Opts.arguments[String]("destination files").map(_.toList.traverse(loadProperties))
 
-  val destinations = Opts.flag("destination", "destination files", "d") *>
-    Opts.arguments[String]("destination files").map(_.toList.traverse(loadProperties))
+  val getKeys = Opts
+    .arguments[String]("source files")
+    .map(_.traverse(loadProperties(_).map { case (_, properties) =>
+      properties.stringPropertyNames().asScala.foreach(println)
+    }))
 
-  val copyKeys = (source, destinations).mapN { (source, destinations) =>
-    (source, destinations).flatMapN { case ((_, source), destinations) =>
-      val sourceKeys = Set.from(source.stringPropertyNames().asScala)
+  val addKeys = destinations.map {
+    _.flatMap { destinations =>
+      @tailrec
+      def loadSourceKeys(acc: Set[String]): Set[String] = Option(scala.io.StdIn.readLine()) match {
+        case None      => acc
+        case Some(key) => loadSourceKeys(acc + key)
+      }
+
+      val sourceKeys = loadSourceKeys(Set())
 
       destinations
         .flatMap { case (file, destination) =>
           val missing = sourceKeys -- Set.from(destination.stringPropertyNames().asScala)
-          missing.foreach { missing => destination.setProperty(missing, "<COPY>" + source.getProperty(missing)) }
+          missing.foreach { missing => destination.setProperty(missing, "<TODO>") }
 
           Option.when(missing.nonEmpty)((file, destination))
         }
